@@ -2,35 +2,31 @@
 import gym
 import torch
 import torch.nn as nn
-import torch.nn.functional as functional
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 
 import random
+'''
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import animation, rc
 from IPython.display import Math, HTML
 from pylab import rcParams
+'''
 
-learning_rate = 0.0005
-gamma 		  = 0.98
-lmbda 		  = 0.95
-eps_clip 	  = 0.1
-K_epoch 	  = 3
-T_horizon 	  = 20
-
+'''
 from IPython.display import clear_output
 clear_output()
-
+'''
 #from xvfbwrapper import xvfb
 #vdisplay = Xvfb(width = 1280, height = 740)
 #vdisplay.start()
 
-rcParams['figure.figsize'] = 5,3
+#rcParams['figure.figsize'] = 5,3
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+'''
 def render_frames(env, num_frame = 50):
 	env.reset()
 	frames = []
@@ -54,6 +50,17 @@ def create_animation(frames):
 	display(HTML(ani.to_html5_video()))
 	plt.close()
 	return ani
+'''
+learning_rate = 0.0005
+gamma 		  = 0.98
+lmbda 		  = 0.95
+eps_clip 	  = 0.1
+K_epoch 	  = 3
+T_horizon 	  = 20
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 
 class PPO(nn.Module):
 	def __init__(self):
@@ -122,7 +129,7 @@ class PPO(nn.Module):
 			ratio = torch.exp(torch.log(pi_a)-torch.log(prob_a))
 
 			surr1 = ratio*advantage
-			surr2 = torch.clamp(ration, 1-eps_clip, 1+eps_clip)*advantage
+			surr2 = torch.clamp(ratio, 1-eps_clip, 1+eps_clip)*advantage
 			loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(td_target.detach(), self.v(s))
 
 			self.optimizer.zero_grad()
@@ -136,7 +143,7 @@ def main():
 
 	for n_epi in range(10000):
 		s = env.reset()
-		ani = create_animation(render_frames(env, 300))
+		#ani = create_animation(render_frames(env, 300))
 		done = False
 		while not done:
 			for t in range(T_horizon):
@@ -156,5 +163,5 @@ def main():
 			score = 0.0
 		env.close()
 
-	if __name__ == '__main__':
-		main()
+if __name__ == '__main__':
+	main()

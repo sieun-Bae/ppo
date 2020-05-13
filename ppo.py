@@ -6,6 +6,13 @@ import torch.nn.functional as functional
 import torch.optim as optim
 from torch.distributions import Categorical
 
+import random
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import animation, rc
+from IPython.display import Math, HTML
+from pylab import rcParams
+
 learning_rate = 0.0005
 gamma 		  = 0.98
 lmbda 		  = 0.95
@@ -13,13 +20,48 @@ eps_clip 	  = 0.1
 K_epoch 	  = 3
 T_horizon 	  = 20
 
+from IPython.display import clear_output
+clear_output()
+
+#from xvfbwrapper import xvfb
+#vdisplay = Xvfb(width = 1280, height = 740)
+#vdisplay.start()
+
+rcParams['figure.figsize'] = 5,3
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def render_frames(env, num_frame = 50):
+	env.reset()
+	frames = []
+	for i in range(num_frame):
+		_, _, done, _ = env.step(env.action_space.sample())
+		if done:
+			env.reset()
+			frames.append(env.render(mode='rgb_array'))
+		return frames
+
+def create_animation(frames):
+	rc('animation', html='jshtml')
+	fig = plt.figure()
+	plt.axis("off")
+	im = plt.imshow(frames[0], animated=True)
+
+	def updatefig(i):
+		im.set_array(frames[i])
+		return im,
+	ani = animation.FuncAnimation(fig, updatefig, frames=len(frames), interval=len(frames)/10, blit=True)
+	display(HTML(ani.to_html5_video()))
+	plt.close()
+	return ani
+
 class PPO(nn.Module):
 	def __init__(self):
 		super(PPO, self).__init__()
-		self.data[]
+		self.data = []
 
-		self.fc1 = nn.Linear(4, 256)
-		self.fc_pi = nn.Linear(256, 2)
+		self.fc1 = nn.Linear(8, 256)
+		self.fc_pi = nn.Linear(256, 4)
 		self.fc_v = nn.Linear(256, 1)
 		self.optimizer = optim.Adam(self.parameters(), lr=0.0005)
 
@@ -30,6 +72,7 @@ class PPO(nn.Module):
 		prob = F.softmax(x, dim=softmax_dim)
 		return prob
 
+	#value network
 	def v(self, x):
 		x = F.relu(self.fc1(x))
 		v = self.fc_v(x)
@@ -86,13 +129,14 @@ class PPO(nn.Module):
 			loss.mean().backward()
 			self.optimizer.step()
 def main():
-	env = gym.make('CartPole-v1')
+	env = gym.make('LunarLander-v2')
 	model = PPO()
 	score = 0.0
 	print_interval = 20
 
 	for n_epi in range(10000):
 		s = env.reset()
+		ani = create_animation(render_frames(env, 300))
 		done = False
 		while not done:
 			for t in range(T_horizon):

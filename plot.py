@@ -18,14 +18,14 @@ def preprocess(lines):
 
 	return step, reward
 
-def plot(step, reward):	
+def plot(step, reward, file_name):	
 	plt.title("Reward per step")
 	plt.plot(step, reward, color = 'gray')
 	plt.plot(step, [ 0 for i in range(len(reward)) ], color = "black")
 	plt.plot(step, [ 200 for i in range(len(reward)) ], color = "green")
 	plt.xlabel("step")
 	plt.ylabel("reward")
-	plt.savefig('result.png', dpi=300)
+	plt.savefig(f"{file_name}_plot.png", dpi=300)
 	plt.show()
 
 
@@ -36,7 +36,7 @@ def main():
 	lines = f.readlines()
 
 	step, reward = preprocess(lines)
-	plot(step, reward)
+	plot(step, reward, file_name)
 
 	f.close()
 

@@ -96,7 +96,8 @@ def main():
 	model = PPO()
 
 	f = open("./log_ppo.txt", "a")
-
+	f.write(time.strftime('%m-%d %H:%M:%s', time.localtime(time.time())))
+	
 	score = 0.0
 	print_interval = 20
 
@@ -125,6 +126,7 @@ def main():
 			score = 0.0
 
 	env.close()
+	f.write(time.strftime('%m-%d %H:%M:%s', time.localtime(time.time())))
 	f.close()
 
 if __name__ == '__main__':

@@ -31,7 +31,6 @@ class PPO(nn.Module):
 	def pi(self, x, softmax_dim = 0):
 		x = F.relu(self.fc1(x))
 		x = x.view(-1, 1, 64)
-		x, lstm_hidden = self.lstm(x, hidden)
 		x = self.fc_pi(x)
 		prob = F.softmax(x, dim=softmax_dim)
 		return prob
@@ -40,7 +39,6 @@ class PPO(nn.Module):
 	def v(self, x):
 		x = F.relu(self.fc1(x))
 		x = x.view(-1, 1, 64)
-		x, lstm_hidden = self.lstm(x, hidden)
 		v = self.fc_v(x)
 		return x
 
@@ -48,7 +46,7 @@ class PPO(nn.Module):
 		self.data.append(transition)
 
 	def make_batch(self):
-		s_lst, a_lst, r_lst, s_prime_lst, prob_a_lst, h_in_lst, h_out_lst, done_lst = [], [], [], [], [], [], [], []
+		s_lst, a_lst, r_lst, s_prime_lst, prob_a_lst, done_lst = [], [], [], [], [], [], [], []
 		for transition in self.data:
 			s, a, r, s_prime, prob_a, done = transition
 
@@ -57,26 +55,19 @@ class PPO(nn.Module):
 			r_lst.append([r])
 			s_prime_lst.append(s_prime)
 			prob_a_lst.append([prob_a])
-			h_in_lst.append(h_in)
-			h_out_lst.append(h_out)
 			done_mask = 0 if done else 1
 			done_lst.append([done_mask])
 		s, a, r, s_prime, done_mask, prob_a = torch.tensor(s_lst, dtype=torch.float), torch.tensor(a_lst),\
 												torch.tensor(r_lst), torch.tensor(s_prime_lst, dtype=torch.float), \
 												torch.tensor(done_lst, dtype = torch.float), torch.tensor(prob_a_lst)
 		self.data = []
-		return s, a, r, s_prime, done_mask, prob_a, h_in_lst[0], h_out_lst[0]
+		return s, a, r, s_prime, done_mask, prob_a
 
 	#GAE
 	def train_net(self):
-		s, a, r, s_prime, done_mask, prob_a, (h1_in, h2_in), (h1_out, h2_out) = self.make_batch()
-
-		first_hidden = (h1_in.detach(), h2_in.detach())
-		second_hidden = (h1_out.detach(), h2_out.detach())
+		s, a, r, s_prime, done_mask, prob_a = self.make_batch()
 
 		for i in range(K_epoch):
-			v_prime = self.v(s_prime, second_hidden).squeeze(1)
-
 			td_target = r+gamma*self.v(s_prime)*done_mask
 			delta = td_target-self.v(s)
 			delta=delta.detach().numpy()
@@ -101,6 +92,7 @@ class PPO(nn.Module):
 			self.optimizer.zero_grad()
 			loss.mean().backward()
 			self.optimizer.step()
+
 def main():
 	env = gym.make('LunarLander-v2')
 	model = PPO()
@@ -113,12 +105,12 @@ def main():
 	for n_epi in range(200000):
 		s = env.reset()
 		done = False
+
 		while not done:
 			for t in range(T_horizon):
 				prob = model.pi(torch.from_numpy(s).float())
 				m = Categorical(prob)
 				a = m.sample().item()
-				env.render()
 				s_prime, r, done, info = env.step(a)
 				model.put_data((s, a, r/100.0, s_prime, prob[a].item(), done))
 				s = s_prime

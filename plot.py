@@ -20,10 +20,14 @@ def preprocess(lines):
 
 def plot(step, reward):	
 	plt.title("Reward per step")
-	plt.plot(step, reward)
+	plt.plot(step, reward, color = 'gray')
+	plt.plot(step, [ 0 for i in range(len(reward)) ], color = "black")
+	plt.plot(step, [ 200 for i in range(len(reward)) ], color = "green")
 	plt.xlabel("step")
 	plt.ylabel("reward")
+	plt.savefig('result.png', dpi=300)
 	plt.show()
+
 
 def main():
 	file_name = sys.argv[1]

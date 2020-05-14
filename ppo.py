@@ -23,10 +23,9 @@ class PPO(nn.Module):
 		self.data = []
 
 		self.fc1 = nn.Linear(8, 256)
-		self.lstm = nn.LSTM(256, 64)
-		self.fc_pi = nn.Linear(64, 4)
-		self.fc_v = nn.Linear(64, 1)
-		self.optimizer = optim.Adam(self.parameters(), lr=0.0005)
+		self.fc_pi = nn.Linear(256, 4)
+		self.fc_v = nn.Linear(256, 1)
+		self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
 	#policy network	
 	def pi(self, x, softmax_dim = 0):

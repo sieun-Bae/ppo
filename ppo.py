@@ -30,7 +30,6 @@ class PPO(nn.Module):
 	#policy network	
 	def pi(self, x, softmax_dim = 0):
 		x = F.relu(self.fc1(x))
-		x = x.view(-1, 1, 64)
 		x = self.fc_pi(x)
 		prob = F.softmax(x, dim=softmax_dim)
 		return prob
@@ -38,7 +37,6 @@ class PPO(nn.Module):
 	#value network
 	def v(self, x):
 		x = F.relu(self.fc1(x))
-		x = x.view(-1, 1, 64)
 		v = self.fc_v(x)
 		return x
 
@@ -46,7 +44,7 @@ class PPO(nn.Module):
 		self.data.append(transition)
 
 	def make_batch(self):
-		s_lst, a_lst, r_lst, s_prime_lst, prob_a_lst, done_lst = [], [], [], [], [], [], [], []
+		s_lst, a_lst, r_lst, s_prime_lst, prob_a_lst, done_lst = [], [], [], [], [], []
 		for transition in self.data:
 			s, a, r, s_prime, prob_a, done = transition
 

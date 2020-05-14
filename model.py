@@ -110,7 +110,7 @@ def main():
 	env = gym.make('LunarLander-v2')
 	model = PPO()
 
-	f = open("./train_log.txt", "a")
+	f = open("./log_ppo_lstm.txt", "a")
 
 	score = 0.0
 	print_interval = 20

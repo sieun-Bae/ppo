@@ -51,12 +51,12 @@ def create_animation(frames):
 	plt.close()
 	return ani
 '''
-learning_rate = 0.0005
-gamma 		  = 0.98
+learning_rate = 2.5e-4
+gamma 		  = 0.99
 lmbda 		  = 0.95
 eps_clip 	  = 0.1
-K_epoch 	  = 3
-T_horizon 	  = 20
+K_epoch 	  = 4		#how often to update the network (@train_net)
+T_horizon 	  = 128
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -141,7 +141,7 @@ def main():
 	score = 0.0
 	print_interval = 20
 
-	for n_epi in range(10000):
+	for n_epi in range(200000):
 		s = env.reset()
 		#ani = create_animation(render_frames(env, 300))
 		done = False
@@ -150,6 +150,7 @@ def main():
 				prob = model.pi(torch.from_numpy(s).float())
 				m = Categorical(prob)
 				a = m.sample().item()
+				env.render()
 				s_prime, r, done, info = env.step(a)
 				model.put_data((s, a, r/100.0, s_prime, prob[a].item(), done))
 				s = s_prime
@@ -158,9 +159,11 @@ def main():
 				if done:
 					break
 			model.train_net()
+			
 		if n_epi%print_interval == 0 and n_epi!=0:
 			print("# of episode: {}, avg score: {:.1f}".format(n_epi, score/print_interval))
 			score = 0.0
+
 		env.close()
 
 if __name__ == '__main__':

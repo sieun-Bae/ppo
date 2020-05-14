@@ -105,6 +105,9 @@ class PPO(nn.Module):
 def main():
 	env = gym.make('LunarLander-v2')
 	model = PPO()
+
+	f = open("./train_log.txt", "a")
+
 	score = 0.0
 	print_interval = 20
 
@@ -127,10 +130,13 @@ def main():
 			model.train_net()
 			
 		if n_epi%print_interval == 0 and n_epi!=0:
-			print("# of episode: {}, avg score: {:.1f}".format(n_epi, score/print_interval))
+			data ="# of episode: {}, avg score: {:.1f}\n".format(n_epi, score/print_interval) 
+			print(data)
+			f.write(data)
 			score = 0.0
 
 	env.close()
+	f.close()
 
 if __name__ == '__main__':
 	main()
